@@ -164,7 +164,6 @@ All configured connections:
 ## 📚 Project Structure
 
 ```
-chapter10/
 ├── airflow/
 │   ├── dags/
 │   │   ├── recurring_player_api_insert_update_dag.py ✅
@@ -178,9 +177,6 @@ chapter10/
 │   │   ├── test_main.py
 │   │   └── test_crud.py
 │   └── docker-compose.yaml
-├── complete/
-│   ├── bulk_player_file_load_dag.py
-│   └── recurring_player_api_insert_update_dag.py
 ├── FINAL_STATUS.md (this file)
 └── readme.md
 ```

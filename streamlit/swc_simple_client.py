@@ -1,6 +1,7 @@
 import backoff
 import logging
 import httpx
+import streamlit as st
 
 HEALTH_CHECK_ENDPOINT = "/"
 LIST_LEAGUES_ENDPOINT = "/v0/leagues/"
@@ -40,3 +41,21 @@ def call_api_endpoint(
     except Exception as e:
         logger.error(f"Unexpected error occurred: {str(e)}")
         return httpx.Response(status_code=500, content=b"Unexpected error")
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_api_json_cached(
+    base_url: str,
+    api_endpoint: str,
+    api_params_items: tuple = None,
+) -> list[dict]:
+    """Fetch endpoint JSON and cache the result for faster reruns.
+
+    api_params_items is a hashable tuple of key/value pairs so the function
+    can be safely cached by Streamlit.
+    """
+    api_params = dict(api_params_items) if api_params_items else None
+    response = call_api_endpoint(base_url, api_endpoint, api_params)
+    if response.status_code != 200:
+        raise RuntimeError(f"API call failed: {response.status_code} {response.text}")
+    return response.json()
