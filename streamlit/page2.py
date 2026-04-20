@@ -30,25 +30,16 @@ try:
     flat_team_df['league_id'] = flat_team_df['league_id'].astype(str)
     league_roster_df = flat_team_df[flat_team_df['league_id'] == selected_league].copy()
 
-    st.markdown("### Visualization 1: Team Roster Size by Team")
-    team_size_df = (
-        league_roster_df.groupby('team_name', as_index=False)
-        .size()
-        .rename(columns={'size': 'roster_size'})
-        .sort_values('roster_size', ascending=False)
-    )
-    st.bar_chart(team_size_df, x='team_name', y='roster_size')
-
-    st.markdown("### Visualization 2: Player Position Distribution")
+    st.markdown("### Visualization 1: Player Position Mix")
     position_df = (
         league_roster_df.groupby('position', as_index=False)
         .size()
         .rename(columns={'size': 'player_count'})
         .sort_values('player_count', ascending=False)
     )
-    st.area_chart(position_df, x='position', y='player_count')
+    st.bar_chart(position_df, x='position', y='player_count')
 
-    st.markdown("### Visualization 3: Total Touchdowns by Team (2023)")
+    st.markdown("### Visualization 2: Total Touchdowns by Team (2023)")
     nfl_data_2023_df = nfl.import_seasonal_data([2023], "REG")
     nfl_data_2023_subset_df = nfl_data_2023_df[
         ["player_id", "passing_tds", "rushing_tds", "receiving_tds"]
@@ -69,13 +60,27 @@ try:
 
     team_tds_df = merged_df.groupby("team_name")["total_tds"].sum().reset_index()
     team_tds_df["total_tds"] = team_tds_df["total_tds"].fillna(0)
-    team_tds_df = team_tds_df.sort_values(by="total_tds", ascending=True)
+    team_tds_df = team_tds_df.sort_values(by="total_tds", ascending=False)
+
+    st.line_chart(team_tds_df.set_index("team_name")["total_tds"])
+
+    st.markdown("### Visualization 3: Top Players by Total Touchdowns (2023)")
+    player_tds_df = (
+        merged_df.groupby(["first_name", "last_name"], as_index=False)["total_tds"]
+        .sum()
+        .fillna(0)
+        .sort_values(by="total_tds", ascending=False)
+        .head(10)
+    )
 
     fig, ax = plt.subplots(figsize=(9, 5))
-    ax.barh(team_tds_df["team_name"], team_tds_df["total_tds"])
+    ax.barh(
+        player_tds_df["first_name"] + " " + player_tds_df["last_name"],
+        player_tds_df["total_tds"],
+    )
     ax.set_xlabel("Total TDs")
-    ax.set_ylabel("Team Name")
-    ax.set_title("Total TDs by Team - 2023")
+    ax.set_ylabel("Player")
+    ax.set_title("Top 10 Players by Total TDs - 2023")
     st.pyplot(fig)
 
     st.caption(f"Showing {len(league_roster_df)} players across league {selected_league}.")

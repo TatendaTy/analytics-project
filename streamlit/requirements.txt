@@ -1,0 +1,6 @@
+streamlit
+pandas
+httpx
+backoff
+matplotlib
+nfl_data_py

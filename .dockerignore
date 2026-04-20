@@ -1,0 +1,27 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.py[cod]
+*.log
+*.sqlite
+*.db
+
+# Local tooling/editor
+.vscode
+.idea
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Airflow runtime folders not needed for Streamlit image
+airflow/logs/
+airflow/plugins/
+airflow/config/
+
+# Notebook artifacts
+notebooks/
+api/
+streamlitapp.zip
