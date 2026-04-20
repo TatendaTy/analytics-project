@@ -1,0 +1,6 @@
+streamlit
+httpx
+nfl_data_py
+matplotlib
+backoff
+pandas>=1.5.3
