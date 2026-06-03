@@ -60,7 +60,7 @@ All 5 data pipeline DAGs are now fully operational with 100% task success rate.
 ## 📊 Database Summary
 
 ```
-analytics_database.db Location: chapter10/airflow/dags/analytics_database.db
+analytics_database.db Location: airflow/airflow/dags/analytics_database.db
 
 Tables:
 ├── player (1,018 rows)
@@ -109,7 +109,7 @@ Tables:
    - Fixed response parsing for HttpHook responses
 
 ### Files Created
-1. **chapter10/player_data_partial.parquet**
+1. **airflow/player_data_partial.parquet**
    - Sample player data file (5 records)
    - Pushed to GitHub for DAG access
 

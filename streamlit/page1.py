@@ -1,50 +1,67 @@
-import streamlit as st
-import swc_simple_client as swc
-import pandas as pd
 import logging
 
-logger = logging.getLogger(__name__) #reference the logging file configured in the entrypoint file
+import pandas as pd
+import streamlit as st
 
-# print headings to the top of the page
+import swc_simple_client as swc
+
+logger = logging.getLogger(__name__)
+
 st.header("SportWorldCentral Data App")
 st.subheader("Team Rosters Page")
 
-base_url = st.session_state['base_url'] # retrieve the base_url var from the session state
+base_url = st.session_state.get('base_url')
 
-# catch any unhandled exceptions and log them to the football_app.log file
+# Validate session state
+if not base_url:
+    st.error("Base URL not configured. Please restart the app.")
+    st.stop()
+
 try:
-    # call the API endpoint with Streamlit caching to reduce repeated API requests
+    # Load teams data with caching
     team_data = swc.get_api_json_cached(base_url, swc.LIST_TEAMS_ENDPOINT)
-    teams_df = pd.DataFrame.from_dict(team_data) # create a DataFrame from the team data dict
+    teams_df = pd.DataFrame(team_data)
     
-    unique_leagues = teams_df['league_id'].unique()
-    unique_leagues = sorted(unique_leagues.astype(str))
+    # Get unique leagues from teams data
+    unique_leagues = sorted(teams_df['league_id'].unique().astype(str))
     
-    # store the unique leagues in the session state so that they can be used in other pages of the app
-    if 'unique_leagues' not in st.session_state:
-        st.session_state['unique_leagues'] = unique_leagues
-        
-    selected_league = st.sidebar.selectbox('Pick league ID', unique_leagues) # create a dropdown menu in the sidebar to select a league ID
-    st.sidebar.divider() # add a divider to the sidebar
+    # Store the unique leagues in the session state
+    st.session_state['unique_leagues'] = unique_leagues
+    
+    st.sidebar.divider()
     st.sidebar.subheader(":blue[Data sources]")
     st.sidebar.text("SportWorldCentral")
+
+    # Flatten the team data so each row represents a player
+    flat_team_df = pd.json_normalize(
+        team_data, 
+        'players', 
+        ['team_id', 'team_name', 'league_id']
+    )
     
-    # flatten the team data so that each row represents a player, and the team and league information is included in each row
-    flat_team_df = pd.json_normalize(team_data, 'players', ['team_id', 'team_name', 'league_id'])
-    column_order = ['league_id', 'team_id', 'team_name', 'position',
-                    'player_id', 'gsis_id', 'first_name', 'last_name']
+    column_order = [
+        'league_id', 'team_id', 'team_name', 'position',
+        'player_id', 'gsis_id', 'first_name', 'last_name'
+    ]
     flat_team_df_ordered = flat_team_df[column_order]
+    st.session_state['flat_team_df_ordered'] = flat_team_df_ordered
     
-    if 'flat_team_df_ordered' not in st.session_state:
-        st.session_state['flat_team_df_ordered'] = flat_team_df_ordered
+    # Create dropdown for league selection
+    selected_league = st.sidebar.selectbox('Pick league ID', unique_leagues)
     
-    display_df = flat_team_df_ordered.drop(columns=['team_id', 'player_id'])
-    
+    # Filter by selected league
+    display_df = flat_team_df_ordered.copy()
     display_df['league_id'] = display_df['league_id'].astype(str)
-    display_df = display_df[display_df['league_id'] == selected_league] # filter the DataFrame to only match the values given by the user
+    display_df = display_df[display_df['league_id'] == selected_league]
     
-    st.dataframe(display_df, hide_index=True) # display the team roster data in a table on the page, hiding the index column
-        
+    # Drop internal IDs from display
+    display_df = display_df.drop(columns=['team_id', 'player_id'])
+    
+    st.dataframe(display_df, hide_index=True)
+
+except RuntimeError as e:
+    logger.error(f"API error: {str(e)}")
+    st.error("Failed to load team data. Please try again later.")
 except Exception as e:
-    logger.error(f"Exception encountered: {str(e)}") # log any unhandled exceptions that occur during the execution of the try block
-    st.write("Error encountered while accessing data source.")
+    logger.error(f"Unexpected error: {str(e)}")
+    st.caption("Data is temporarily unavailable.")

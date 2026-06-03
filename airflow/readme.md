@@ -11,7 +11,7 @@ All DAGs are fully operational with 100% task success rate. Data is successfully
 ## Project Structure
 
 ```
-chapter10/
+airflow/
 ├── airflow/                           # Airflow setup with Docker Compose
 │   ├── dags/                          # DAG definitions
 │   │   ├── recurring_player_api_insert_update_dag.py      (✅ WORKING)
@@ -115,7 +115,7 @@ All required connections are configured in the Airflow UI:
 
 1. **Navigate to the airflow directory**
    ```bash
-   cd chapter10/airflow
+   cd airflow/airflow
    ```
 
 2. **Start Airflow services**

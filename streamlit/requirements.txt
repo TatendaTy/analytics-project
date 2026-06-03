@@ -4,3 +4,4 @@ httpx
 backoff
 matplotlib
 nfl_data_py
+python-dotenv

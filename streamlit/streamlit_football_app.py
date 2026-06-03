@@ -1,24 +1,40 @@
-import streamlit as st
+from dotenv import load_dotenv
+
 import logging
-import pandas as pd
 import os
 
-default_base_url = os.getenv("API_BASE_URL") or "http://127.0.0.1:8000"
+import streamlit as st
 
-if 'base_url' not in st.session_state or not st.session_state['base_url']:
-    st.session_state['base_url'] = default_base_url
-elif st.session_state['base_url'] in {"http://127.0.0.1:8000", "127.0.0.1:8000", "localhost:8000"}:
-    st.session_state['base_url'] = default_base_url
+# Load the variables from the .env file
+load_dotenv()
 
-# Ensure the URL always has a scheme so httpx can build valid request URLs.
-if not st.session_state['base_url'].startswith(("http://", "https://")):
-    st.session_state['base_url'] = f"http://{st.session_state['base_url']}"
 
-# configure logging
-logging.basicConfig(
-    filename='football_app.log',
-    level=logging.INFO,
-)
+def init_session_state() -> None:
+    """Initialize session state variables with proper defaults and URL validation."""
+    default_base_url = os.getenv("API_BASE_URL") or "http://127.0.0.1:8000"
+    
+    # Initialize base_url if not set or empty
+    if 'base_url' not in st.session_state or not st.session_state.get('base_url'):
+        st.session_state['base_url'] = default_base_url
+    
+    # Ensure the URL has a scheme so httpx can build valid request URLs.
+    base_url = st.session_state.get('base_url', default_base_url)
+    if not base_url.startswith(("http://", "https://")):
+        st.session_state['base_url'] = f"http://{base_url}"
+
+
+def configure_logging() -> None:
+    """Configure application logging with a consistent format."""
+    logging.basicConfig(
+        filename='football_app.log',
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
+
+# Initialize session state and logging
+init_session_state()
+configure_logging()
 
 # set the configuration for the Streamlit app
 st.set_page_config(page_title="Football App",
