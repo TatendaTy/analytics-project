@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from datetime import date
 
 
-import crud, schemas
-from database import SessionLocal
+import crud, models, schemas
+from database import SessionLocal, engine
 
 api_description = """
 This API provides read-only access to info from the Sports World Central (SWC) Fantasy Football API. 
@@ -25,7 +25,7 @@ You can get a list of NFL player performances, including the fantasy points they
 Get information about all the SWC fantasy football leagues and the teams in them.
 
 ## General
-Get information about the SWC fantasy football platform as a whole.
+Get information about the Sports World Central fantasy football platform as a whole.
 """
 
 # FastAPI constructor with additional details added for OpenAPI Specification
@@ -34,6 +34,9 @@ app = FastAPI(
     title="Sports World Central (SWC) Fantasy Football API",
     version="0.2",
 )
+
+# Create tables added to the models when deploying against an older SQLite database.
+models.Base.metadata.create_all(bind=engine)
 
 
 # Dependency
@@ -193,7 +196,7 @@ def read_leagues(
     "/v0/teams/",
     response_model=list[schemas.Team],
     summary="Get all the SWC fantasy football teams that match the parameters you send",
-    description="""Use this endpoint to get lists of SWC fantasy football teams. You us the skip and limit to perform pagination of the API. Team name may not be unique. If you get the Team ID from another query you can match it with the Team ID from this query.  Don't use the Team ID for counting or logic.""",
+    description="""Use this endpoint to get lists of SWC fantasy football teams. You us the skip and limit to perform pagination of the API. Team name may not be unique. If you get the Team ID from another query such as v0_get_teams you can match it with the Team ID from this query.  Don't use the Team ID for counting or logic.""",
     response_description="A list of teams on the SWC fantasy football website.",
     operation_id="v0_get_teams",
     tags=["membership"],
@@ -238,17 +241,17 @@ def read_teams(
     operation_id="v0_get_counts",
     tags=["analytics"],
 )
-
 def get_count(db: Session = Depends(get_db)):
     counts = schemas.Counts(
         league_count=crud.get_league_count(db),
         team_count=crud.get_team_count(db),
         player_count=crud.get_player_count(db),
-        week_count=crud.get_week_count(db), #v0.2
+        week_count=crud.get_week_count(db),  # v0.2
     )
     return counts
 
-#v0.2
+
+# v0.2
 @app.get(
     "/v0/weeks/",
     response_model=list[schemas.Week],
