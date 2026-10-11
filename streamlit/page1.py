@@ -1,5 +1,6 @@
 import logging
 
+import httpx
 import pandas as pd
 import streamlit as st
 
@@ -59,6 +60,17 @@ try:
     
     st.dataframe(display_df, hide_index=True)
 
+except httpx.HTTPStatusError as e:
+    logger.exception("API returned HTTP %s while loading team data", e.response.status_code)
+    st.error(
+        f"The API returned HTTP {e.response.status_code} while loading team data. "
+        "The backend is reachable, but its team-data endpoint is currently failing."
+    )
+    st.caption(f"API: {base_url}")
+except httpx.RequestError:
+    logger.exception("Could not connect to the API while loading team data")
+    st.error("Could not connect to the API while loading team data.")
+    st.caption(f"API: {base_url}")
 except RuntimeError as e:
     logger.error(f"API error: {str(e)}")
     st.error("Failed to load team data. Please try again later.")

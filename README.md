@@ -107,9 +107,22 @@ These changes made the project substantially more production-like by reducing br
 - Trigger DAGs from Airflow UI or CLI
 
 ### Streamlit
-- Enter [streamlit](streamlit)
-- Start the app with `streamlit run streamlit_football_app.py`
-- Ensure the API is running before opening the app
+- Start the app locally with `streamlit run streamlit/streamlit_football_app.py`
+- The app connects by default to the hosted API at `https://fantasyfootball-api-service-lmm2.onrender.com`.
+- To use another API locally, set `API_BASE_URL` in a `.env` file or environment variable.
+
+#### Deploy on Streamlit Community Cloud
+
+1. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/) and connect your GitHub account.
+2. Create an app from this repository, select the `main` branch, and set the app file path to `streamlit/streamlit_football_app.py`.
+3. Deploy. The app's requirements are in `streamlit/requirements.txt`, and it uses the hosted API URL by default.
+4. If deploying against a different API, open the app's settings and add `API_BASE_URL` to **Secrets**, for example:
+
+   ```toml
+   API_BASE_URL = "https://your-api.example.com"
+   ```
+
+The API base URL is not a credential; no API secret is required for the currently hosted read-only backend.
 
 ## Streamlit Enhancements
 

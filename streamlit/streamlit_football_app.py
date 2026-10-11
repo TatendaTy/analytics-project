@@ -4,18 +4,28 @@ import logging
 import os
 
 import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 
 # Load the variables from the .env file
 load_dotenv()
 
+DEFAULT_API_BASE_URL = "https://fantasyfootball-api-service-lmm2.onrender.com"
+
 
 def init_session_state() -> None:
     """Initialize session state variables with proper defaults and URL validation."""
-    default_base_url = os.getenv("API_BASE_URL") or "http://127.0.0.1:8000"
+    try:
+        secrets_base_url = st.secrets.get("API_BASE_URL")
+    except StreamlitSecretNotFoundError:
+        secrets_base_url = None
+
+    default_base_url = (
+        os.getenv("API_BASE_URL") or secrets_base_url or DEFAULT_API_BASE_URL
+    )
     
     # Initialize base_url if not set or empty
     if 'base_url' not in st.session_state or not st.session_state.get('base_url'):
-        st.session_state['base_url'] = default_base_url
+        st.session_state['base_url'] = default_base_url.strip().rstrip("/")
     
     # Ensure the URL has a scheme so httpx can build valid request URLs.
     base_url = st.session_state.get('base_url', default_base_url)
